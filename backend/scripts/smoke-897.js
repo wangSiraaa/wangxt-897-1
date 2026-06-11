@@ -180,6 +180,13 @@ async function main() {
   assert(blockData?.unpaid_count > 0, '未回款订单数 > 0', `未回款数量: ${blockData?.unpaid_count}`);
   assert(blockData?.unpaid_amount > 0, '未回款金额 > 0', `未回款金额: ¥${blockData?.unpaid_amount}`);
   assert(Array.isArray(blockData?.unpaid_orders), '返回未回款订单明细数组', `明细数量: ${blockData?.unpaid_orders?.length || 0}`);
+  
+  const ourUnpaidOrder = blockData?.unpaid_orders?.find(o => o.order_no === 'SMOKE897_UNPAID_001');
+  if (ourUnpaidOrder) {
+    assert(ourUnpaidOrder.paid_amount === 0, '拦截检查返回 paid_amount=0', `实际值: ${ourUnpaidOrder.paid_amount}`);
+    assert(ourUnpaidOrder.is_explicit_unpaid === true, '拦截检查返回 is_explicit_unpaid=true');
+    assert(ourUnpaidOrder.unpaid_reason === '未回款销售不计返利', '拦截检查返回 unpaid_reason 正确', `实际值: ${ourUnpaidOrder.unpaid_reason}`);
+  }
 
   log('\n[Case 2.3] 验证拦截后自动生成未回款提醒通知', 'y');
   const unpaidNotifyRes = await apiCall('GET', '/api/notifications?type=unpaid_warning&pageSize=5', adminToken);
@@ -207,6 +214,17 @@ async function main() {
     assert(unpaidOrdersInCalc.length > 0, '试算结果包含未回款订单');
     assert(dealerCalc.paidTotal !== undefined, '有回款金额字段', `回款金额: ¥${dealerCalc.paidTotal || dealerCalc.paid_total || 0}`);
     assert(dealerCalc.achievementRate !== undefined, '有达成率字段', `达成率: ${dealerCalc.achievementRate || dealerCalc.achievement_rate || 0}%`);
+    
+    const allOrders = dealerCalc.orders || [];
+    const testOrderInCalc = allOrders.find(o => o.order_no === 'SMOKE897_UNPAID_001');
+    if (testOrderInCalc) {
+      assert(testOrderInCalc.is_explicit_unpaid === true, 'paid_amount=0 的订单被标记为 is_explicit_unpaid');
+      assert(testOrderInCalc.is_paid === false, 'paid_amount=0 的订单 is_paid=false');
+      assert(testOrderInCalc.paid_amount_matched === 0, 'paid_amount_matched=0（未被独立回款池补充）', `实际值: ${testOrderInCalc.paid_amount_matched}`);
+      assert(testOrderInCalc.paid_amount_from_payment === 0, 'paid_amount_from_payment=0（独立回款池未补充）', `实际值: ${testOrderInCalc.paid_amount_from_payment}`);
+      assert(testOrderInCalc.unpaid_reason === '未回款销售不计返利', '未回款原因为「未回款销售不计返利」', `实际值: ${testOrderInCalc.unpaid_reason}`);
+      assert(unpaidOrdersInCalc.some(o => o.id === testOrderInCalc.id || o.order_no === testOrderInCalc.order_no), '测试订单出现在 unpaidOrders 中');
+    }
   }
 
   log('\n==============================================', 'c');

@@ -221,10 +221,13 @@ router.post('/check-unpaid-block', requireRoles(ROLES.ADMIN, ROLES.CHANNEL_MANAG
 
     const allOrders = calc.getSalesOrders();
     const distributorOrders = allOrders.filter(o => o.distributor_id === distributor_id);
-    const unpaidOrders = distributorOrders.filter(o => !o.paid_amount || o.paid_amount < o.total_amount * 0.9999);
+    const payments = calc.getPayments(distributor_id);
+    const { sortedOrders } = calc.matchPaymentsToOrders(distributorOrders, payments);
+    
+    const unpaidOrders = sortedOrders.filter(o => !o.is_paid);
 
     if (unpaidOrders.length > 0) {
-      const unpaidAmount = unpaidOrders.reduce((s, o) => s + (o.total_amount - (o.paid_amount || 0)), 0);
+      const unpaidAmount = unpaidOrders.reduce((s, o) => s + ((o.total_amount || 0) - (o.paid_amount_matched || 0)), 0);
 
       createNotification(db, {
         distributor_id,
@@ -234,8 +237,10 @@ router.post('/check-unpaid-block', requireRoles(ROLES.ADMIN, ROLES.CHANNEL_MANAG
         data_json: {
           unpaid_orders: unpaidOrders.map(o => ({
             id: o.id, order_no: o.order_no,
-            total_amount: o.total_amount, paid_amount: o.paid_amount,
-            unpaid_amount: o.total_amount - (o.paid_amount || 0)
+            total_amount: o.total_amount, paid_amount: o.paid_amount_matched,
+            unpaid_amount: (o.total_amount || 0) - (o.paid_amount_matched || 0),
+            is_explicit_unpaid: o.is_explicit_unpaid,
+            unpaid_reason: o.unpaid_reason
           })),
           unpaid_amount: unpaidAmount,
           period_start, period_end,
@@ -251,7 +256,10 @@ router.post('/check-unpaid-block', requireRoles(ROLES.ADMIN, ROLES.CHANNEL_MANAG
         unpaid_amount: unpaidAmount,
         unpaid_orders: unpaidOrders.map(o => ({
           id: o.id, order_no: o.order_no,
-          total_amount: o.total_amount, paid_amount: o.paid_amount
+          total_amount: o.total_amount,
+          paid_amount: o.paid_amount_matched,
+          is_explicit_unpaid: o.is_explicit_unpaid,
+          unpaid_reason: o.unpaid_reason
         }))
       });
     }

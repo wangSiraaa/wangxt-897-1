@@ -108,16 +108,27 @@ class RebateCalculator {
     let remaining = paymentSum;
     for (const order of sortedOrders) {
       const already = (order.paid_amount || 0);
-      const need = Math.max(0, (order.total_amount || 0) - already);
+      const total = (order.total_amount || 0);
+      const isExplicitUnpaid = already === 0 || already < 0.01;
+      
       let fromPayment = 0;
-      if (need > 0 && remaining > 0) {
-        fromPayment = Math.min(need, remaining);
-        remaining -= fromPayment;
+      if (!isExplicitUnpaid) {
+        const need = Math.max(0, total - already);
+        if (need > 0 && remaining > 0) {
+          fromPayment = Math.min(need, remaining);
+          remaining -= fromPayment;
+        }
       }
+      
       order.paid_amount_direct = already;
       order.paid_amount_from_payment = fromPayment;
       order.paid_amount_matched = already + fromPayment;
-      order.is_paid = order.paid_amount_matched / (order.total_amount || 1) >= 0.9999;
+      order.is_paid = order.paid_amount_matched / (total || 1) >= 0.9999;
+      order.is_explicit_unpaid = isExplicitUnpaid;
+      
+      if (isExplicitUnpaid) {
+        order.unpaid_reason = '未回款销售不计返利';
+      }
     }
 
     const totalPaid = directPaidSum + (paymentSum - remaining);

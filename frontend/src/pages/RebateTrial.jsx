@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { DatePicker, Select, Button, Card, Row, Col, Space, Typography, Progress, Divider, Table, Statistic, Descriptions, Tag, message, Empty, Result, Tooltip, List } from 'antd';
+import { DatePicker, Select, Button, Card, Row, Col, Space, Typography, Progress, Divider, Table, Statistic, Descriptions, Tag, message, Empty, Result, Tooltip, List, Alert } from 'antd';
 import { CalculatorOutlined, SaveOutlined, CheckCircleOutlined, CloseCircleOutlined, WarningOutlined, InfoCircleOutlined, RiseOutlined, FallOutlined } from '@ant-design/icons';
 import { api } from '../services/api.js';
 import dayjs from 'dayjs';
@@ -225,6 +225,16 @@ export default function RebateTrial() {
 
                   return (
                     <Space direction="vertical" style={{ width: '100%' }}>
+                      {cur.unpaidOrders && cur.unpaidOrders.length > 0 && (
+                        <Alert
+                          type="warning"
+                          showIcon
+                          icon={<WarningOutlined />}
+                          message={<><b>未回款提醒：共 {cur.unpaidOrders.length} 笔销售单不计入返利</b>（点击下方表格查看详情）</>}
+                          description={`未回款金额 ¥${(cur.salesTotal - cur.paidTotal)?.toLocaleString() || 0}，已自动从返利核算中剔除`}
+                          style={{ marginBottom: 12 }}
+                        />
+                      )}
                       <Table rowKey="id" size="small" pagination={{ pageSize: 5 }} dataSource={cur.orders || []}
                         rowClassName={r => r.is_paid ? '' : 'unpaid-row'}
                         columns={[
@@ -233,12 +243,14 @@ export default function RebateTrial() {
                           { title: '商品', dataIndex: 'product_name' },
                           { title: '数量', dataIndex: 'quantity', width: 60, align: 'right' },
                           { title: '总额', dataIndex: 'total_amount', width: 110, align: 'right', render: v => '¥' + v?.toLocaleString() },
+                          { title: '直接回款', dataIndex: 'paid_amount_direct', width: 100, align: 'right', render: v => '¥' + (v || 0).toLocaleString() },
+                          { title: '独立池补充', dataIndex: 'paid_amount_from_payment', width: 100, align: 'right', render: (v, r) => r.is_explicit_unpaid ? <Tag color="red">禁止补充</Tag> : '¥' + (v || 0).toLocaleString() },
                           { title: '匹配回款', dataIndex: 'paid_amount_matched', width: 110, align: 'right', render: v => '¥' + (v || 0).toLocaleString() },
-                          { title: '是否全回款', dataIndex: 'is_paid', width: 90, align: 'center', render: v => v ? <Tag icon={<CheckCircleOutlined />} color="success">计入返利</Tag> : <Tag icon={<CloseCircleOutlined />} color="default">未回款不计</Tag> }
+                          { title: '状态', dataIndex: 'is_paid', width: 140, align: 'center', render: (v, r) => v ? <Tag icon={<CheckCircleOutlined />} color="success">计入返利</Tag> : <Tag icon={<CloseCircleOutlined />} color="error">{r.unpaid_reason || '未回款不计'}</Tag> }
                         ]}
                       />
                       <div className="rebate-tip" style={{ padding: 12 }}>
-                        <InfoCircleOutlined /> 校验规则：<b>未回款销售单不计入返利</b>，仅完全回款（匹配回款≥总额99.99%）的销售单参与核算。
+                        <InfoCircleOutlined /> 校验规则：<b>已标记 paid_amount=0 的未回款销售单，独立回款池不会补充</b>；仅完全回款（匹配回款≥总额99.99%）的销售单参与核算。
                       </div>
                     </Space>
                   );
