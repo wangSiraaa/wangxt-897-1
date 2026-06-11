@@ -85,6 +85,15 @@ export const api = {
     remove: id => request.delete(`/api/batches/${id}`)
   },
   audit: { list: params => request.get('/api/audit', { params }) },
+  notifications: {
+    list: params => request.get('/api/notifications', { params }),
+    unreadCount: () => request.get('/api/notifications/unread-count'),
+    read: id => request.post(`/api/notifications/${id}/read`),
+    readAll: () => request.post('/api/notifications/read-all'),
+    generatePolicyMatch: data => request.post('/api/notifications/generate-policy-match', data),
+    checkUnpaidBlock: data => request.post('/api/notifications/check-unpaid-block', data),
+    remove: id => request.delete(`/api/notifications/${id}`)
+  },
   health: () => request.get('/health')
 };
 

@@ -369,6 +369,20 @@ function initTables(dbConn) {
       locked_at TEXT,
       lock_reason TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id TEXT PRIMARY KEY,
+      user_id TEXT,
+      distributor_id TEXT,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      content TEXT,
+      policy_id TEXT,
+      status TEXT DEFAULT 'unread',
+      data_json TEXT,
+      read_at TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `;
   dbConn.exec(sqlScript);
 }

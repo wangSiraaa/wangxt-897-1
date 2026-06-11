@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 
@@ -9,6 +11,11 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(morgan('combined'));
+
+const frontendDist = path.join(__dirname, '..', '..', 'frontend', 'dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+}
 
 app.get('/health', (req, res) => {
   res.json({
@@ -31,6 +38,16 @@ app.use('/api/batches', require('./routes/batches'));
 app.use('/api/audit', require('./routes/audit'));
 app.use('/api/region-auths', require('./routes/regionAuths'));
 app.use('/api/penalty-rules', require('./routes/penaltyRules'));
+app.use('/api/notifications', require('./routes/notifications').router);
+
+if (fs.existsSync(frontendDist)) {
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/') || req.path === '/health') {
+      return next();
+    }
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

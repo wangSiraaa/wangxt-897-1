@@ -13,6 +13,7 @@ import RebateTrial from './pages/RebateTrial.jsx';
 import Batches from './pages/Batches.jsx';
 import { Invoices, Distributors, PenaltyRules, RegionAuths } from './pages/_subpages.jsx';
 import Audit from './pages/Audit.jsx';
+import Notifications from './pages/Notifications.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -36,6 +37,7 @@ function AppRoutes() {
         <Route path="rebate/trial" element={<RebateTrial />} />
         <Route path="batches" element={<Batches />} />
         <Route path="audit" element={<Audit />} />
+        <Route path="notifications" element={<Notifications />} />
         <Route path="distributors" element={<Distributors />} />
         <Route path="penalty-rules" element={<PenaltyRules />} />
         <Route path="region-auths" element={<RegionAuths />} />
