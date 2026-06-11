@@ -12,6 +12,7 @@ import Smuggle from './pages/Smuggle.jsx';
 import RebateTrial from './pages/RebateTrial.jsx';
 import Batches from './pages/Batches.jsx';
 import { Invoices, Distributors, PenaltyRules, RegionAuths } from './pages/_subpages.jsx';
+import Audit from './pages/Audit.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();

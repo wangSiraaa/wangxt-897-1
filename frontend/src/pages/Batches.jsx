@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Form, Select, DatePicker, Space, Modal, message, Popconfirm, Tag, Typography, Descriptions, Row, Col, Card, Progress, Drawer, Input, Tooltip, List } from 'antd';
-import { PlusOutlined, CheckOutlined, UndoOutlined, FileExportOutlined, DeleteOutlined, EyeOutlined, ExclamationCircleOutlined, SafetyOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import { PlusOutlined, CheckOutlined, UndoOutlined, ExportOutlined, DeleteOutlined, EyeOutlined, ExclamationCircleOutlined, SafetyOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 import { api } from '../services/api.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import dayjs from 'dayjs';
@@ -113,7 +113,7 @@ export default function Batches() {
           { title: '操作', width: 300, fixed: 'right', render: (_, r) => (
             <Space size="small" wrap>
               <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => openDetail(r)}>详情</Button>
-              <Button type="link" size="small" icon={<FileExportOutlined />} onClick={() => exportExcel(r.id)}>导出</Button>
+              <Button type="link" size="small" icon={<ExportOutlined />} onClick={() => exportExcel(r.id)}>导出</Button>
               {canReview && r.status === 'draft' && <Button type="link" size="small" icon={<CheckOutlined />} onClick={() => review(r.id)}>财务复核</Button>}
               {canReview && r.status === 'reviewed' && <Button type="link" size="small" icon={<UndoOutlined />} onClick={() => unreview(r.id)}>取消复核</Button>}
               {canReview && r.status === 'reviewed' && !r.risk_mark && <Button type="link" size="small" icon={<SafetyOutlined />} onClick={() => confirm(r.id)}>确认结算</Button>}
@@ -229,7 +229,7 @@ export default function Batches() {
             )}
 
             <Space wrap style={{ justifyContent: 'flex-end' }}>
-              <Button icon={<FileExportOutlined />} onClick={() => exportExcel(detail.id)}>导出Excel</Button>
+              <Button icon={<ExportOutlined />} onClick={() => exportExcel(detail.id)}>导出Excel</Button>
               {canReview && detail.status === 'draft' && <Button icon={<CheckOutlined />} type="primary" onClick={() => review(detail.id)}>财务复核</Button>}
               {canReview && detail.status === 'reviewed' && <Button icon={<UndoOutlined />} onClick={() => unreview(detail.id)}>取消复核</Button>}
               {canReview && detail.status === 'reviewed' && !detail.risk_mark && <Button icon={<SafetyOutlined />} type="primary" onClick={() => confirm(detail.id)}>确认结算</Button>}

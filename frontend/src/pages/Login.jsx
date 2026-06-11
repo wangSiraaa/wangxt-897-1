@@ -10,7 +10,7 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [quickUser, setQuickUser] = useState(null);
+  const [form] = Form.useForm();
 
   const defaultAccounts = [
     { label: '运营管理员', username: 'admin', password: 'admin123', color: '#1677ff' },
@@ -27,10 +27,14 @@ export default function Login() {
       message.success('登录成功');
       navigate('/dashboard', { replace: true });
     } catch (e) {
-      // 已拦截处理
     } finally {
       setLoading(false);
     }
+  };
+
+  const quickLogin = (account) => {
+    form.setFieldsValue({ username: account.username, password: account.password });
+    form.submit();
   };
 
   return (
@@ -41,7 +45,7 @@ export default function Login() {
           <Title level={3} style={{ margin: '8px 0 4px', color: '#002140' }}>酒类经销返利核算系统</Title>
           <Paragraph type="secondary" style={{ margin: 0 }}>Wine Distribution Rebate Management</Paragraph>
         </div>
-        <Form onFinish={onSubmit} layout="vertical" initialValues={quickUser || {}}>
+        <Form form={form} onFinish={onSubmit} layout="vertical">
           <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]} label="用户名">
             <Input prefix={<UserOutlined />} placeholder="请输入用户名" size="large" autoComplete="username" />
           </Form.Item>
@@ -60,7 +64,7 @@ export default function Login() {
             {defaultAccounts.map(a => (
               <Button key={a.username} size="small"
                 style={{ borderColor: a.color, color: a.color }}
-                onClick={() => setQuickUser({ username: a.username, password: a.password })}>
+                onClick={() => quickLogin(a)}>
                 {a.label}
               </Button>
             ))}
